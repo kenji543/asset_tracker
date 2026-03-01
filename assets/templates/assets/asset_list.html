@@ -1,0 +1,137 @@
+{% extends "assets/base.html" %}
+
+{% block content %}
+
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="page-header">
+    <h1>Corporate Assets</h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'asset-create' %}" class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1"></i> New Asset
+        </a>
+        <a href="{% url 'export-assets' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-download me-1"></i> Export CSV
+        </a>
+    </div>
+</div>
+
+<div class="filter-bar">
+    <form method="GET" class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <input type="text" name="search" class="form-control form-control-sm" placeholder="Search assets or users…"
+                value="{{ request.GET.search }}">
+        </div>
+        <div class="col-md-3">
+            <select name="asset_type" class="form-select form-select-sm">
+                <option value="">All Types</option>
+                {% for code, display in asset_types %}
+                <option value="{{ code }}" {% if request.GET.asset_type == code %}selected{% endif %}>
+                    {{ display }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'asset-list' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
+        </div>
+    </form>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Asset Name</th>
+                <th>Type</th>
+                <th>Cost</th>
+                <th>Assigned To</th>
+                <th>Created</th>
+                {% if user.is_manager_or_admin %}<th></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for asset in assets %}
+            <tr>
+                <td style="font-weight:500;">{{ asset.name }}</td>
+                <td class="text-muted">{{ asset.get_asset_type_display }}</td>
+                <td>${{ asset.cost }}</td>
+                <td>
+                    {% if asset.assigned_to %}
+                    <span class="badge badge-user">{{ asset.assigned_to.username }}</span>
+                    {% else %}
+                    <span class="badge badge-unassigned">Unassigned</span>
+                    {% endif %}
+                </td>
+                <td class="text-muted">{{ asset.created_at|date:"M d, Y" }}</td>
+                {% if user.is_manager_or_admin %}
+                <td>
+                    <div class="d-flex gap-1">
+                        <a href="{% url 'asset-update' asset.pk %}" class="action-btn" title="Edit">
+                            <i class="fas fa-pen"></i>
+                        </a>
+                        <a href="{% url 'asset-history' asset.pk %}" class="action-btn" title="History">
+                            <i class="fas fa-clock-rotate-left"></i>
+                        </a>
+                        <a href="{% url 'add-maintenance-log' asset.pk %}" class="action-btn" title="Maintenance">
+                            <i class="fas fa-wrench"></i>
+                        </a>
+                        <a href="{% url 'asset-delete' asset.pk %}" class="action-btn danger" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-5">No assets found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link"
+                href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.asset_type %}&asset_type={{ request.GET.asset_type }}{% endif %}">
+                &laquo; Prev
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
+        {% endif %}
+
+        <li class="page-item active">
+            <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        </li>
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link"
+                href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.asset_type %}&asset_type={{ request.GET.asset_type }}{% endif %}">
+                Next &raquo;
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

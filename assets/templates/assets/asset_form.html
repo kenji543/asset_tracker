@@ -1,0 +1,19 @@
+{% extends "assets/base.html" %}
+
+{% block content %}
+
+<div class="form-wrapper">
+    <h2>{% if form.instance.pk %}Edit Asset{% else %}New Asset{% endif %}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary btn-sm">
+                {% if form.instance.pk %}Save Changes{% else %}Create Asset{% endif %}
+            </button>
+            <a href="{% url 'asset-list' %}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "assets/base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>History — {{ asset.name }}</h1>
+    <a href="{% url 'asset-list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> Back
+    </a>
+</div>
+
+{% if messages %}
+<div class="alert alert-success alert-dismissible fade show mb-4">
+    {% for message in messages %}{{ message }}{% endfor %}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endif %}
+
+<h2 style="font-size:14px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">
+    Change Log</h2>
+<div class="table-responsive mb-5">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Action</th>
+                <th>By</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Cost</th>
+                <th>Assigned To</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in history_records %}
+            <tr>
+                <td class="text-muted">{{ record.history_date|date:"M d, Y H:i" }}</td>
+                <td>
+                    {% if record.history_type == '+' %}
+                    <span class="badge" style="background:#d1fae5;color:#065f46;">Created</span>
+                    {% elif record.history_type == '~' %}
+                    <span class="badge" style="background:#fef3c7;color:#92400e;">Updated</span>
+                    {% elif record.history_type == '-' %}
+                    <span class="badge" style="background:#fee2e2;color:#991b1b;">Deleted</span>
+                    {% endif %}
+                </td>
+                <td>{{ record.history_user.username|default:"System" }}</td>
+                <td style="font-weight:500;">{{ record.name }}</td>
+                <td class="text-muted">{{ record.get_asset_type_display }}</td>
+                <td>${{ record.cost }}</td>
+                <td>{{ record.assigned_to.username|default:"Unassigned" }}</td>
+                <td>
+                    {% if forloop.counter0 > 0 %}
+                    <form method="post" action="{% url 'asset-revert' asset.pk record.history_id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="action-btn" onclick="return confirm('Revert to this version?')"
+                            title="Rollback">
+                            <i class="fas fa-rotate-left"></i>
+                        </button>
+                    </form>
+                    {% else %}
+                    <span style="font-size:11px;color:#aaa;">Current</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h2 style="font-size:14px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">
+    Maintenance Logs</h2>
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Service Date</th>
+                <th>Description</th>
+                <th>Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in asset.maintenance_logs.all %}
+            <tr>
+                <td class="text-muted">{{ log.service_date|date:"M d, Y" }}</td>
+                <td>{{ log.description }}</td>
+                <td>${{ log.cost }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" class="text-center text-muted py-4">No maintenance records.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

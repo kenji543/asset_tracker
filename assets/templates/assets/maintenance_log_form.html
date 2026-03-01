@@ -1,0 +1,43 @@
+{% extends "assets/base.html" %}
+
+{% block content %}
+
+<div class="form-wrapper">
+    <h2>Log Maintenance — {{ asset.name }}</h2>
+    <p class="text-muted mb-4" style="font-size:13px;">Record a service or repair activity for this asset.</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary btn-sm">Save Record</button>
+            <a href="{% url 'asset-list' %}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let dateInput = document.getElementById('id_service_date');
+
+        if (!dateInput) {
+            const labels = document.querySelectorAll('label');
+            labels.forEach(function (label) {
+                if (label.textContent.toLowerCase().includes('service date')) {
+                    const inputId = label.getAttribute('for');
+                    dateInput = document.getElementById(inputId);
+                }
+            });
+        }
+
+        if (dateInput) {
+            dateInput.type = 'date';
+        }
+
+        const formInputs = document.querySelectorAll('form input:not([type="hidden"]):not([type="submit"]):not([type="checkbox"]):not([type="radio"]), form select, form textarea');
+        formInputs.forEach(function (input) {
+            input.classList.add('form-control');
+        });
+    });
+</script>
+
+{% endblock %}
